@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lievito Pizzaria</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Lievito — pizzaria napoletana na Vila Madalena. Massa de 72 horas, forno a lenha a 485°C.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&family=Shrikhand&display=swap">
+<style>
+  /* Layout: faixas de pôster que alternam tomate, carvão, manjericão e mozzarella; o forno (seção fixada) é o momento central */
+  :root {
+    --pomodoro: #C3271D;
+    --pomodoro-deep: #921A12;
+    --mozz: #FFF9EF;
+    --farina: #F2E6D2;
+    --basilico: #1D5534;
+    --crosta: #23120B;
+    --brace: #FF8A2A;
+    --ink: #23120B;
+    --ink-soft: rgba(35, 18, 11, .68);
+
+    --f-display: "Shrikhand", "Georgia", serif;
+    --f-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono: "DM Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+    --step--1: clamp(.82rem, .8rem + .1vw, .9rem);
+    --step-0: clamp(1rem, .96rem + .2vw, 1.12rem);
+    --step-1: clamp(1.25rem, 1.1rem + .6vw, 1.6rem);
+    --step-2: clamp(1.7rem, 1.3rem + 1.6vw, 2.6rem);
+    --step-3: clamp(2.4rem, 1.6rem + 3.6vw, 4.6rem);
+    --step-4: clamp(3rem, 1.8rem + 6vw, 7.4rem);
+
+    color-scheme: light;
+  }
+
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-stopped { overflow: hidden; }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    background: var(--mozz);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: var(--step-0);
+    line-height: 1.55;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+    z-index: 60; background: var(--pomodoro);
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--brace); outline-offset: 3px; border-radius: 4px; }
+
+  .wrap {
+    max-width: 1280px; margin-inline: auto;
+    padding-left: max(20px, env(safe-area-inset-left, 0px));
+    padding-right: max(20px, env(safe-area-inset-right, 0px));
+  }
+  .eyebrow {
+    font-family: var(--f-mono); font-size: var(--step--1); text-transform: uppercase;
+    letter-spacing: .14em; margin: 0;
+  }
+  .section-title {
+    font-family: var(--f-display); font-weight: 400; font-size: var(--step-3);
+    line-height: 1; margin: 0; text-wrap: balance; letter-spacing: -.01em;
+  }
+
+  /* ---------- progresso e cursor ---------- */
+  .progress {
+    position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; height: 3px; z-index: 70;
+    background: var(--brace); transform-origin: 0 50%; transform: scaleX(0);
+  }
+  .cursor {
+    position: fixed; left: 0; top: 0; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+    background: var(--brace); pointer-events: none; z-index: 80; mix-blend-mode: multiply;
+    display: grid; place-items: center; font-family: var(--f-mono); font-size: 0; color: var(--crosta);
+    transition: width .35s cubic-bezier(.2,.8,.2,1), height .35s cubic-bezier(.2,.8,.2,1), margin .35s cubic-bezier(.2,.8,.2,1), font-size .2s;
+  }
+  .cursor.is-big { width: 74px; height: 74px; margin: -37px 0 0 -37px; mix-blend-mode: normal; font-size: 12px; letter-spacing: .1em; }
+  @media (hover: none), (pointer: coarse) { .cursor { display: none; } }
+
+  /* ---------- nav ---------- */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
+    pointer-events: none;
+  }
+  .nav-inner {
+    pointer-events: auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    background: var(--mozz); color: var(--ink); border-radius: 999px;
+    padding: 8px 8px 8px 22px; box-shadow: 0 10px 30px -12px rgba(35, 18, 11, .45);
+    max-width: 1240px; margin-inline: auto;
+  }
+  .nav-wrap {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .logo { font-family: var(--f-display); font-size: 1.5rem; text-decoration: none; color: var(--pomodoro); line-height: 1; }
+  .nav-links { display: flex; gap: 26px; list-style: none; margin: 0; padding: 0; font-weight: 500; font-size: .95rem; }
+  .nav-links a { text-decoration: none; position: relative; }
+  .nav-links a::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 2px; background: var(--pomodoro);
+    transform: scaleX(0); transform-origin: right; transition: transform .35s ease;
+  }
+  .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
+  @media (max-width: 760px) { .nav-links { display: none; } }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px; text-decoration: none; cursor: pointer;
+    font: 600 .98rem/1 var(--f-body); border-radius: 999px; padding: 15px 24px; border: 2px solid transparent;
+    transition: background .25s, color .25s, border-color .25s;
+  }
+  .btn-red { background: var(--pomodoro); color: var(--mozz); }
+  .btn-red:hover { background: var(--crosta); }
+  .btn-cream { background: var(--mozz); color: var(--pomodoro); }
+  .btn-cream:hover { background: var(--crosta); color: var(--mozz); }
+  .btn-ghost { border-color: currentColor; color: var(--mozz); }
+  .btn-ghost:hover { background: var(--mozz); color: var(--pomodoro); border-color: var(--mozz); }
+  .nav .btn { padding: 12px 20px; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative; background: var(--pomodoro); color: var(--mozz); overflow: hidden;
+    padding-block: clamp(120px, 16vh, 170px) clamp(64px, 10vh, 110px);
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background: radial-gradient(60% 70% at 78% 55%, rgba(255, 138, 42, .45), transparent 70%);
+  }
+  .hero-grid {
+    position: relative; z-index: 1;
+    display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: center; gap: clamp(24px, 4vw, 64px);
+  }
+  .hero-copy { display: grid; gap: 26px; min-width: 0; }
+  .hero-title {
+    font-family: var(--f-display); font-weight: 400; font-size: var(--step-4);
+    line-height: .95; margin: 0; letter-spacing: -.015em; text-wrap: balance;
+  }
+  .hero-title .line-mask { padding-bottom: .08em; margin-bottom: -.08em; }
+  .hero-lede { max-width: 46ch; margin: 0; font-size: var(--step-1); line-height: 1.45; color: rgba(255, 249, 239, .88); }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+  .hero-art { position: relative; aspect-ratio: 1; width: 100%; max-width: 620px; justify-self: center; }
+  .hero-art canvas { width: 100%; height: 100%; display: block; }
+  .badge {
+    position: absolute; width: clamp(96px, 13vw, 150px); height: auto; right: 2%; top: 4%;
+    animation: spin 18s linear infinite;
+  }
+  .badge text { font-family: var(--f-mono); font-size: 14.5px; letter-spacing: .08em; fill: var(--crosta); }
+  .badge .badge-c { font-family: var(--f-display); font-size: 40px; fill: var(--pomodoro); letter-spacing: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .leaf { position: absolute; z-index: 0; width: clamp(48px, 6vw, 86px); }
+  .leaf path:first-child { fill: var(--basilico); }
+  .leaf path:last-child { fill: none; stroke: rgba(255, 249, 239, .35); stroke-width: 1.5; }
+  .hero-meta {
+    position: relative; z-index: 1; margin-top: clamp(40px, 7vh, 72px);
+    display: flex; flex-wrap: wrap; gap: 10px 36px; font-family: var(--f-mono); font-size: var(--step--1);
+    text-transform: uppercase; letter-spacing: .1em; color: rgba(255, 249, 239, .8);
+  }
+  .hero-meta span::before { content: "— "; color: var(--brace); }
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-art { max-width: 400px; order: -1; width: 70%; }
+  }
+
+  /* ---------- letreiro ---------- */
+  .marquee { background: var(--crosta); color: var(--mozz); overflow: hidden; padding-block: 22px; }
+  .marquee-track { display: flex; width: max-content; will-change: transform; }
+  .marquee-track span {
+    font-family: var(--f-display); font-size: clamp(1.8rem, 1.2rem + 2.6vw, 3.4rem); line-height: 1.1;
+    padding-inline: .5em; white-space: nowrap;
+  }
+  .marquee-track span.dot { color: var(--brace); font-family: var(--f-body); }
+
+  /* ---------- processo (forno) ---------- */
+  .processo-pin {
+    --pbg: #FFF9EF; --pfg: #23120B;
+    position: relative; min-height: 100svh; display: flex; align-items: center; overflow: hidden;
+    background: var(--pbg); color: var(--pfg); padding-block: 90px 40px;
+  }
+  .glow {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: radial-gradient(42% 52% at 72% 52%, rgba(255, 138, 42, .55), rgba(195, 39, 29, .18) 55%, transparent 75%);
+  }
+  .processo-grid {
+    position: relative; z-index: 1; width: 100%;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: clamp(24px, 5vw, 80px);
+  }
+  .processo-copy { display: grid; gap: 22px; min-width: 0; }
+  .steps-nav { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .steps-nav li {
+    font-family: var(--f-mono); font-size: var(--step--1); padding: 7px 14px; border-radius: 999px;
+    border: 1.5px solid currentColor; opacity: .45; transition: opacity .3s, background .3s, color .3s, border-color .3s;
+  }
+  .steps-nav li.is-active { opacity: 1; background: var(--pomodoro); color: var(--mozz); border-color: var(--pomodoro); }
+  .steps { display: grid; }
+  .step {
+    grid-area: 1 / 1; display: grid; gap: 10px; align-content: start; max-width: 48ch;
+    opacity: 0; transform: translateY(18px); transition: opacity .5s ease, transform .6s cubic-bezier(.2,.8,.2,1);
+  }
+  .step.is-active { opacity: 1; transform: none; }
+  .step h3 { font-family: var(--f-display); font-weight: 400; font-size: var(--step-2); margin: 0; line-height: 1.05; }
+  .step p { margin: 0; font-size: var(--step-1); line-height: 1.45; opacity: .85; }
+  .step-meta { font-family: var(--f-mono); font-size: var(--step--1); letter-spacing: .08em; color: var(--brace); text-transform: uppercase; }
+  .processo-art { position: relative; justify-self: center; width: min(560px, 100%); aspect-ratio: 1; max-width: 100%; }
+  .processo-art canvas { width: 100%; height: 100%; display: block; }
+  .gauge {
+    position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%);
+    display: flex; gap: 8px; opacity: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums;
+  }
+  .gauge div {
+    background: rgba(255, 249, 239, .1); border: 1px solid rgba(255, 249, 239, .3); color: var(--mozz);
+    border-radius: 999px; padding: 8px 16px; white-space: nowrap; backdrop-filter: blur(6px);
+  }
+  .gauge b { color: var(--brace); font-weight: 500; }
+  @media (max-width: 860px) {
+    .processo-pin { align-items: flex-start; padding-block: 84px 24px; }
+    .processo-grid { grid-template-columns: 1fr; gap: 14px; }
+    .processo-art { order: -1; width: min(40svh, 78vw); }
+    .processo-copy { gap: 14px; }
+    .processo-copy .section-title { font-size: var(--step-2); }
+    .step p { font-size: var(--step-0); }
+  }
+
+  /* ---------- números ---------- */
+  .numeros { background: var(--crosta); color: var(--mozz); padding-block: clamp(80px, 12vw, 150px); }
+  .numeros-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+  .numero { padding: 28px 24px 28px 0; border-top: 1px solid rgba(255, 249, 239, .2); display: grid; gap: 8px; }
+  .numero + .numero { padding-left: 24px; border-left: 1px solid rgba(255, 249, 239, .2); }
+  .numero strong {
+    font-family: var(--f-display); font-weight: 400; font-size: var(--step-4); line-height: 1; color: var(--brace);
+    font-variant-numeric: tabular-nums;
+  }
+  .numero strong small { font-family: var(--f-mono); font-size: .3em; color: var(--mozz); margin-left: .2em; }
+  .numero p { margin: 0; color: rgba(255, 249, 239, .75); max-width: 24ch; }
+  .numeros-head { display: grid; gap: 16px; margin-bottom: clamp(40px, 6vw, 72px); max-width: 760px; }
+  @media (max-width: 900px) {
+    .numeros-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .numero:nth-child(3) { padding-left: 0; border-left: 0; }
+  }
+
+  /* ---------- cardápio ---------- */
+  .menu { background: var(--basilico); color: var(--mozz); }
+  .menu-pin { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; gap: clamp(28px, 5vh, 48px); padding-block: 100px 60px; overflow: hidden; }
+  .menu-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 20px 40px; width: 100%; }
+  .menu-head > div { display: grid; gap: 14px; }
+  .menu-head p.lede { max-width: 38ch; margin: 0; color: rgba(255, 249, 239, .8); }
+  .menu-track {
+    display: flex; gap: 22px; width: max-content;
+    padding-left: max(20px, env(safe-area-inset-left, 0px), calc((100vw - 1280px) / 2 + 20px));
+    padding-right: max(20px, env(safe-area-inset-right, 0px));
+  }
+  .pizza-card {
+    width: 340px; flex: none; background: var(--mozz); color: var(--ink); border-radius: 28px;
+    padding: 18px 18px 24px; display: grid; gap: 14px; align-content: start;
+  }
+  .pc-art { background: var(--farina); border-radius: 18px; aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; }
+  .pc-art canvas { width: 88%; height: 88%; transition: transform .9s cubic-bezier(.2,.8,.2,1); }
+  .pizza-card:hover .pc-art canvas { transform: rotate(40deg) scale(1.04); }
+  .pc-body { display: grid; gap: 8px; padding-inline: 6px; }
+  .pc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .pc-top h3 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 1.55rem; line-height: 1.05; }
+  .price { font-family: var(--f-mono); font-weight: 500; color: var(--pomodoro); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .pc-body p { margin: 0; color: var(--ink-soft); font-size: .97rem; }
+  .tag {
+    justify-self: start; font-family: var(--f-mono); font-size: .75rem; text-transform: uppercase; letter-spacing: .1em;
+    padding: 5px 10px; border-radius: 999px; background: var(--farina);
+  }
+  .menu-end {
+    width: 300px; flex: none; display: grid; align-content: center; gap: 18px; padding: 24px;
+  }
+  .menu-end p { margin: 0; font-family: var(--f-display); font-size: var(--step-2); line-height: 1.05; }
+  @media (max-width: 899px) {
+    .menu-track {
+      width: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      max-width: 1280px; margin-inline: auto; padding-left: max(20px, env(safe-area-inset-left, 0px));
+    }
+    .pizza-card, .menu-end { width: auto; }
+  }
+
+  /* ---------- manifesto ---------- */
+  .manifesto { padding-block: clamp(100px, 14vw, 180px); background: var(--mozz); }
+  .manifesto-text {
+    font-size: clamp(1.7rem, 1.1rem + 2.6vw, 3.4rem); line-height: 1.18; font-weight: 600; letter-spacing: -.02em;
+    margin: 0; max-width: 24em; text-wrap: pretty;
+  }
+  .manifesto-text em { font-family: var(--f-display); font-style: normal; font-weight: 400; color: var(--pomodoro); }
+  .assinatura { margin-top: 36px; display: flex; align-items: center; gap: 14px; font-family: var(--f-mono); font-size: var(--step--1); text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft); }
+  .assinatura::before { content: ""; width: 48px; height: 2px; background: var(--pomodoro); }
+
+  /* ---------- reserva ---------- */
+  .reserva { background: var(--pomodoro); color: var(--mozz); padding-block: clamp(90px, 12vw, 150px); position: relative; overflow: hidden; }
+  .reserva-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(32px, 6vw, 90px); align-items: start; }
+  .reserva-info { display: grid; gap: 30px; min-width: 0; }
+  .reserva-info .lede { margin: 0; font-size: var(--step-1); color: rgba(255, 249, 239, .88); max-width: 34ch; }
+  .horarios { margin: 0; display: grid; gap: 0; font-variant-numeric: tabular-nums; }
+  .horarios div { display: flex; justify-content: space-between; gap: 16px; padding-block: 12px; border-bottom: 1px solid rgba(255, 249, 239, .25); }
+  .horarios dt { font-weight: 600; }
+  .horarios dd { margin: 0; font-family: var(--f-mono); }
+  .contato { display: grid; gap: 4px; font-family: var(--f-mono); font-size: .95rem; }
+  .contato span { user-select: all; }
+  .form-card { background: var(--mozz); color: var(--ink); border-radius: 30px; padding: clamp(22px, 4vw, 40px); display: grid; gap: 18px; min-width: 0; }
+  .form-card h3 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: var(--step-2); line-height: 1; }
+  .form-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .field { display: grid; gap: 6px; min-width: 0; }
+  .field label { font-family: var(--f-mono); font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft); }
+  .field input, .field select, .field textarea {
+    font: 500 1rem/1.3 var(--f-body); color: var(--ink); background: var(--farina);
+    border: 2px solid transparent; border-radius: 14px; padding: 13px 14px; width: 100%; min-width: 0;
+    transition: border-color .2s, background .2s;
+  }
+  .field textarea { resize: vertical; min-height: 88px; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--pomodoro); background: var(--mozz); }
+  .form-card .btn { justify-self: start; }
+  .form-ok {
+    border-radius: 16px; padding: 16px 18px; background: var(--basilico); color: var(--mozz); font-weight: 500;
+  }
+  @media (max-width: 860px) {
+    .reserva-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr 1fr; }
+    .form-row .field:first-child { grid-column: 1 / -1; }
+  }
+
+  /* ---------- rodapé ---------- */
+  .footer { background: var(--crosta); color: var(--mozz); padding-block: 60px 30px; overflow: hidden; }
+  .footer-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; font-size: .95rem; color: rgba(255, 249, 239, .7); }
+  .footer-word {
+    font-family: var(--f-display); font-size: clamp(5rem, 25vw, 23rem); line-height: .85; color: var(--pomodoro);
+    margin: 30px 0 0; text-align: center; letter-spacing: -.02em; white-space: nowrap;
+  }
+  .footer-note { text-align: center; font-family: var(--f-mono); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(255, 249, 239, .5); margin: 18px 0 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .badge { animation: none; }
+    .step, .pc-art canvas { transition: none; }
+  }
+</style>
+
+</head>
+<body>
+<div class="progress" aria-hidden="true"></div>
+<div class="cursor" aria-hidden="true"></div>
+
+<nav class="nav" aria-label="Principal">
+  <div class="nav-wrap">
+    <div class="nav-inner">
+      <a class="logo" href="#topo">Lievito</a>
+      <ul class="nav-links">
+        <li><a href="#processo">O forno</a></li>
+        <li><a href="#numeros">A massa</a></li>
+        <li><a href="#cardapio">Cardápio</a></li>
+        <li><a href="#reserva">Onde estamos</a></li>
+      </ul>
+      <a class="btn btn-red" href="#reserva" data-cursor="Mesa">Reservar</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="topo">
+  <svg class="leaf" data-speed="0.6" style="left:4%;top:18%;transform:rotate(-24deg)" viewBox="0 0 64 60" aria-hidden="true"><path d="M2 30C10 6 50 0 62 30C50 58 10 54 2 30Z"/><path d="M4 30C24 28 44 29 60 30"/></svg>
+  <svg class="leaf" data-speed="1.2" style="left:46%;bottom:6%;transform:rotate(38deg)" viewBox="0 0 64 60" aria-hidden="true"><path d="M2 30C10 6 50 0 62 30C50 58 10 54 2 30Z"/><path d="M4 30C24 28 44 29 60 30"/></svg>
+  <svg class="leaf" data-speed="0.9" style="right:3%;bottom:12%;transform:rotate(150deg)" viewBox="0 0 64 60" aria-hidden="true"><path d="M2 30C10 6 50 0 62 30C50 58 10 54 2 30Z"/><path d="M4 30C24 28 44 29 60 30"/></svg>
+
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">Pizzaria napoletana · Vila Madalena, São Paulo</p>
+      <h1 class="hero-title" id="heroTitle">Massa que descansa 72&nbsp;horas.</h1>
+      <p class="hero-lede">Farinha tipo 00, fermentação natural e forno a lenha a 485°C. Cada pizza fica 90 segundos no fogo e chega à mesa com a borda ainda estalando.</p>
+      <div class="cta-row">
+        <a class="btn btn-cream" href="#reserva" data-cursor="Mesa">Reservar mesa</a>
+        <a class="btn btn-ghost" href="#cardapio" data-cursor="Ver">Ver cardápio</a>
+      </div>
+    </div>
+    <div class="hero-art">
+      <canvas id="heroPizza" aria-label="Ilustração de uma pizza margherita vista de cima" role="img"></canvas>
+      <svg class="badge" viewBox="0 0 200 200" aria-hidden="true">
+        <defs><path id="circ" d="M100,100 m-76,0 a76,76 0 1,1 152,0 a76,76 0 1,1 -152,0"/></defs>
+        <circle cx="100" cy="100" r="99" fill="#FFF9EF"/>
+        <text><textPath href="#circ" textLength="474">FORNO A LENHA · 485°C · 90 SEGUNDOS ·</textPath></text>
+        <text class="badge-c" x="100" y="114" text-anchor="middle">72h</text>
+      </svg>
+    </div>
+  </div>
+  <div class="wrap hero-meta">
+    <span>Desde 2016</span><span>Rua Harmonia, 1170</span><span>Ter a dom, a partir das 18h</span>
+  </div>
+</header>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track" id="marquee"></div>
+</div>
+
+<section class="processo" id="processo">
+  <div class="processo-pin">
+    <div class="glow"></div>
+    <div class="wrap processo-grid">
+      <div class="processo-copy">
+        <p class="eyebrow">Como nasce uma pizza</p>
+        <h2 class="section-title">Quatro etapas, nenhum atalho.</h2>
+        <ol class="steps-nav">
+          <li class="is-active">Massa</li><li>Molho</li><li>Mozzarella</li><li>Forno</li>
+        </ol>
+        <div class="steps">
+          <article class="step is-active">
+            <span class="step-meta">72 h a 4°C · hidratação 70%</span>
+            <h3>A massa</h3>
+            <p>Farinha tipo 00, água, sal e fermento natural. Ela descansa três dias na câmara fria e é aberta à mão, sem rolo, para não perder o ar.</p>
+          </article>
+          <article class="step">
+            <span class="step-meta">San Marzano D.O.P.</span>
+            <h3>O molho</h3>
+            <p>Tomate pelado esmagado à mão com sal marinho. Sem cozinhar, sem açúcar, sem alho. Uma concha, espalhada em espiral.</p>
+          </article>
+          <article class="step">
+            <span class="step-meta">Fior di latte · manjericão</span>
+            <h3>A mozzarella</h3>
+            <p>Fior di latte que chega toda manhã de um laticínio em Bragança Paulista, rasgado em pedaços. Manjericão fresco antes do fogo.</p>
+          </article>
+          <article class="step">
+            <span class="step-meta">485°C no lastro · 90 s</span>
+            <h3>O forno</h3>
+            <p>Lenha de eucalipto, cúpula de tijolo refratário. A borda infla, ganha as manchas de leopardo e a pizza sai em um minuto e meio.</p>
+          </article>
+        </div>
+      </div>
+      <div class="processo-art">
+        <canvas id="buildPizza" aria-label="Pizza sendo montada conforme a página rola" role="img"></canvas>
+        <div class="gauge" aria-hidden="true"><div>Lastro <b id="gTemp">485</b>°C</div><div>Tempo <b id="gTime">00:00</b></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="numeros" id="numeros">
+  <div class="wrap">
+    <div class="numeros-head reveal">
+      <p class="eyebrow" style="color:var(--brace)">A conta da massa</p>
+      <h2 class="section-title">Uma receita de quatro números.</h2>
+    </div>
+    <div class="numeros-grid">
+      <div class="numero reveal"><strong><span data-count="72">72</span><small>h</small></strong><p>de fermentação lenta antes de a massa ir para a bancada.</p></div>
+      <div class="numero reveal"><strong><span data-count="70">70</span><small>%</small></strong><p>de hidratação. Mais água, alvéolos maiores e borda mais leve.</p></div>
+      <div class="numero reveal"><strong><span data-count="485">485</span><small>°C</small></strong><p>no lastro do forno, medido com termômetro infravermelho a cada serviço.</p></div>
+      <div class="numero reveal"><strong><span data-count="90">90</span><small>s</small></strong><p>de forno. O tempo de girar a pizza três vezes com a pá.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="menu" id="cardapio">
+  <div class="menu-pin">
+    <div class="wrap menu-head">
+      <div>
+        <p class="eyebrow" style="color:var(--brace)">Cardápio</p>
+        <h2 class="section-title">Sete redondas, nenhuma igual.</h2>
+      </div>
+      <p class="lede">Todas com 30 cm e massa de fermentação natural. Opção sem glúten às quintas, com massa de arroz e sorgo.</p>
+    </div>
+    <div class="menu-track" id="menuTrack"></div>
+  </div>
+</section>
+
+<section class="manifesto">
+  <div class="wrap">
+    <p class="manifesto-text" id="manifesto">A gente não faz delivery. Pizza napoletana vive uns <em>três minutos</em> depois de sair do forno, e esses minutos são seus, na mesa, com a borda ainda soltando vapor.</p>
+    <p class="assinatura">Bruna Castellani, pizzaiola</p>
+  </div>
+</section>
+
+<section class="reserva" id="reserva">
+  <div class="wrap reserva-grid">
+    <div class="reserva-info reveal">
+      <p class="eyebrow">Reservas</p>
+      <h2 class="section-title">Guarde uma mesa perto do forno.</h2>
+      <p class="lede">Rua Harmonia, 1170, Vila Madalena. Metade das mesas fica livre para quem chega sem reserva.</p>
+      <dl class="horarios">
+        <div><dt>Segunda</dt><dd>Fechado</dd></div>
+        <div><dt>Terça a quinta</dt><dd>18h – 23h</dd></div>
+        <div><dt>Sexta e sábado</dt><dd>18h – 0h30</dd></div>
+        <div><dt>Domingo</dt><dd>12h – 16h · 18h – 22h</dd></div>
+      </dl>
+      <div class="contato">
+        <span>(11) 3031-4850</span>
+        <span>ola@lievito.pizza</span>
+      </div>
+    </div>
+    <form class="form-card reveal" id="reservaForm" novalidate>
+      <h3>Pedido de reserva</h3>
+      <div class="field">
+        <label for="r-nome">Nome</label>
+        <input id="r-nome" name="nome" autocomplete="name" placeholder="Como chamamos você?" required>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="r-data">Data</label>
+          <input id="r-data" name="data" type="date" required>
+        </div>
+        <div class="field">
+          <label for="r-hora">Horário</label>
+          <select id="r-hora" name="hora">
+            <option>18:30</option><option>19:00</option><option selected>19:30</option><option>20:00</option><option>20:30</option><option>21:00</option><option>21:30</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="r-pessoas">Pessoas</label>
+          <select id="r-pessoas" name="pessoas">
+            <option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="r-obs">Observações</label>
+        <textarea id="r-obs" name="obs" placeholder="Aniversário, cadeira para bebê, restrição alimentar…"></textarea>
+      </div>
+      <button class="btn btn-red" type="submit" data-cursor="Ok">Enviar pedido</button>
+      <p class="form-ok" id="formOk" role="status" hidden></p>
+    </form>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <span>Lievito Pizzaria Napoletana · Vila Madalena, São Paulo</span>
+      <span>Instagram · @lievito.pizza</span>
+    </div>
+    <p class="footer-word" aria-hidden="true">Lievito</p>
+    <p class="footer-note">Projeto fictício de portfólio</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+
+  /* ================= desenho da pizza ================= */
+  function mulberry(a) {
+    return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  function mix(a, b, t) {
+    const A = hex(a), B = hex(b);
+    return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})`;
+  }
+  function blob(ctx, cx, cy, r, amp, ph) {
+    ctx.beginPath();
+    for (let i = 0; i <= 72; i++) {
+      const t = i / 72 * TAU;
+      const k = 1 + amp * (Math.sin(3 * t + ph[0]) * .5 + Math.sin(5 * t + ph[1]) * .3 + Math.sin(9 * t + ph[2]) * .2);
+      const x = cx + Math.cos(t) * r * k, y = cy + Math.sin(t) * r * k;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.closePath();
+  }
+  function leaf(ctx, L, w, c1, c2) {
+    ctx.beginPath(); ctx.moveTo(-L, 0);
+    ctx.quadraticCurveTo(-L * .1, -w * 1.3, L, 0); ctx.quadraticCurveTo(-L * .1, w * 1.3, -L, 0);
+    const g = ctx.createLinearGradient(0, -w, 0, w); g.addColorStop(0, c1); g.addColorStop(1, c2);
+    ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-L * .9, 0); ctx.quadraticCurveTo(0, -w * .1, L * .85, 0);
+    ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = Math.max(1, L * .05); ctx.stroke();
+  }
+
+  const TOPPINGS = {
+    basil(ctx, R, rand, c) { leaf(ctx, R * .11, R * .055, mix('#3A8F52', '#24502F', c * .6), mix('#1D5534', '#163A22', c * .6)); },
+    salame(ctx, R, rand, c) {
+      const r = R * (.075 + rand() * .02);
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU);
+      const g = ctx.createRadialGradient(0, 0, r * .2, 0, 0, r);
+      g.addColorStop(0, '#B4271F'); g.addColorStop(.8, '#9A1E18'); g.addColorStop(1, mix('#7A1510', '#3E0A07', c));
+      ctx.fillStyle = g; ctx.fill();
+      ctx.fillStyle = 'rgba(244,190,170,.75)';
+      for (let i = 0; i < 9; i++) { const a = rand() * TAU, d = Math.sqrt(rand()) * r * .75; ctx.beginPath(); ctx.arc(Math.cos(a) * d, Math.sin(a) * d, r * (.05 + rand() * .06), 0, TAU); ctx.fill(); }
+      if (c > 0) { ctx.beginPath(); ctx.arc(-r * .3, -r * .3, r * .5, 0, TAU); ctx.fillStyle = `rgba(255,140,90,${.18 * c})`; ctx.fill(); }
+    },
+    mushroom(ctx, R, rand, c) {
+      const s = R * .075;
+      ctx.beginPath(); ctx.moveTo(-s, 0); ctx.bezierCurveTo(-s, -s * 1.3, s, -s * 1.3, s, 0);
+      ctx.lineTo(s * .35, 0); ctx.lineTo(s * .4, s * .9); ctx.quadraticCurveTo(0, s * 1.05, -s * .4, s * .9); ctx.lineTo(-s * .35, 0); ctx.closePath();
+      ctx.fillStyle = mix('#E6D6BC', '#C9A77E', c); ctx.fill();
+      ctx.strokeStyle = mix('#9B7B58', '#5E4026', c); ctx.lineWidth = s * .14; ctx.stroke();
+    },
+    olive(ctx, R) { ctx.beginPath(); ctx.arc(0, 0, R * .03, 0, TAU); ctx.strokeStyle = '#2B2420'; ctx.lineWidth = R * .02; ctx.stroke(); },
+    tomato(ctx, R, rand, c) {
+      const r = R * (.045 + rand() * .015);
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fillStyle = mix('#E0432F', '#B92A1C', c); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 0, r * .72, 0, TAU); ctx.fillStyle = '#F06A4E'; ctx.fill();
+      ctx.fillStyle = '#F8D9A0';
+      for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; ctx.beginPath(); ctx.ellipse(Math.cos(a) * r * .42, Math.sin(a) * r * .42, r * .1, r * .06, a, 0, TAU); ctx.fill(); }
+    },
+    arugula(ctx, R, rand) {
+      const L = R * (.1 + rand() * .04);
+      ctx.beginPath(); ctx.moveTo(-L, 0);
+      for (let i = 0; i <= 6; i++) { const x = -L + i / 6 * 2 * L; ctx.lineTo(x, -(i % 2 ? .45 : .2) * L * .45); }
+      for (let i = 6; i >= 0; i--) { const x = -L + i / 6 * 2 * L; ctx.lineTo(x, (i % 2 ? .45 : .2) * L * .45); }
+      ctx.closePath(); ctx.fillStyle = rand() > .5 ? '#4E8A3A' : '#3D7430'; ctx.fill();
+    },
+    garlic(ctx, R) {
+      ctx.beginPath(); ctx.ellipse(0, 0, R * .035, R * .022, 0, 0, TAU);
+      ctx.fillStyle = '#F7EBCC'; ctx.fill(); ctx.strokeStyle = '#D9B97E'; ctx.lineWidth = R * .005; ctx.stroke();
+    },
+    oregano(ctx, R, rand) { ctx.beginPath(); ctx.arc(0, 0, R * (.006 + rand() * .006), 0, TAU); ctx.fillStyle = rand() > .5 ? '#4D6B2E' : '#36501F'; ctx.fill(); },
+    mortadella(ctx, R, rand) {
+      ctx.beginPath(); ctx.ellipse(0, 0, R * .16, R * .1, 0, 0, TAU);
+      ctx.fillStyle = '#EBA6A6'; ctx.fill(); ctx.strokeStyle = '#D7888A'; ctx.lineWidth = R * .008; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-R * .12, R * .02); ctx.quadraticCurveTo(0, -R * .05, R * .13, R * .03);
+      ctx.strokeStyle = 'rgba(160,70,70,.35)'; ctx.lineWidth = R * .01; ctx.stroke();
+      ctx.fillStyle = '#FFF4EE';
+      for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc((rand() - .5) * R * .22, (rand() - .5) * R * .12, R * (.006 + rand() * .01), 0, TAU); ctx.fill(); }
+    },
+    pistachio(ctx, R, rand) {
+      ctx.beginPath(); ctx.ellipse(0, 0, R * (.012 + rand() * .01), R * .009, rand() * TAU, 0, TAU);
+      ctx.fillStyle = rand() > .4 ? '#93B05A' : '#6E8B3C'; ctx.fill();
+    }
+  };
+
+  // st: 0–1 por camada; c = quanto a pizza já assou
+  function drawPizza(cv, cfg, st = {}) {
+    const s = { dough: 1, sauce: 1, cheese: 1, top: 1, char: 1, ...st };
+    const ctx = cv.getContext('2d');
+    const W = cv.width, cx = W / 2, cy = W / 2, R = W * .45, c = s.char;
+    ctx.clearRect(0, 0, W, W);
+    const rand = mulberry(cfg.seed);
+    const ph = () => [rand() * TAU, rand() * TAU, rand() * TAU];
+    const p0 = ph(), p1 = ph(), p2 = ph();
+    if (s.dough <= 0) return;
+
+    ctx.save();
+    const d = easeOut(clamp(s.dough));
+    ctx.globalAlpha = clamp(s.dough * 1.5);
+    ctx.translate(cx, cy); ctx.scale(.6 + .4 * d, .6 + .4 * d); ctx.translate(-cx, -cy);
+
+    // borda
+    ctx.shadowColor = 'rgba(35,18,11,.35)'; ctx.shadowBlur = W * .04; ctx.shadowOffsetY = W * .02;
+    blob(ctx, cx, cy, R, .022, p0);
+    const g = ctx.createRadialGradient(cx, cy, R * .7, cx, cy, R);
+    g.addColorStop(0, mix('#F3DDB4', '#ECC07A', c));
+    g.addColorStop(.6, mix('#EFD3A3', '#E0A050', c));
+    g.addColorStop(1, mix('#E2BD88', '#B2621F', c));
+    ctx.fillStyle = g; ctx.fill();
+    ctx.shadowColor = 'transparent';
+
+    // brilho da borda
+    ctx.save(); blob(ctx, cx - R * .02, cy - R * .03, R * .93, .022, p0); ctx.clip();
+    const hl = ctx.createRadialGradient(cx - R * .3, cy - R * .4, 0, cx - R * .3, cy - R * .4, R * 1.3);
+    hl.addColorStop(0, 'rgba(255,248,230,.35)'); hl.addColorStop(1, 'rgba(255,248,230,0)');
+    ctx.fillStyle = hl; ctx.fillRect(0, 0, W, W); ctx.restore();
+
+    // base interna
+    blob(ctx, cx, cy, R * .8, .03, p1);
+    ctx.fillStyle = mix('#F6E3BE', '#EDC88E', c); ctx.fill();
+
+    // farinha na massa crua
+    const flour = mulberry(cfg.seed + 99);
+    ctx.fillStyle = `rgba(255,255,255,${.5 * (1 - c)})`;
+    for (let i = 0; i < 60; i++) { const a = flour() * TAU, r = R * (.3 + flour() * .65); ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, R * .006 * (1 + flour() * 2), 0, TAU); ctx.fill(); }
+
+    // molho
+    const sv = clamp(s.sauce);
+    if (cfg.sauce !== 'none' && sv > 0) {
+      ctx.save();
+      const sr = R * .79 * (.15 + .85 * easeOut(sv));
+      ctx.globalAlpha *= clamp(sv * 3);
+      blob(ctx, cx, cy, sr, .035, p2);
+      if (cfg.sauce === 'red') {
+        const sg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sr);
+        sg.addColorStop(0, mix('#CF3423', '#B42719', c)); sg.addColorStop(1, mix('#B8271A', '#8E1C12', c));
+        ctx.fillStyle = sg; ctx.fill(); ctx.clip();
+        const sp = mulberry(cfg.seed + 7);
+        for (let i = 0; i < 70; i++) { const a = sp() * TAU, r = Math.sqrt(sp()) * sr; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, R * (.006 + sp() * .018), 0, TAU); ctx.fillStyle = sp() > .5 ? 'rgba(120,18,10,.35)' : 'rgba(240,110,80,.3)'; ctx.fill(); }
+      } else {
+        ctx.fillStyle = mix('#FAF1DE', '#F1DDB5', c); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // queijo
+    const cv_ = clamp(s.cheese);
+    const cr = mulberry(cfg.seed + 3);
+    const cheeseBlob = (x, y, r, base, edge, k) => {
+      if (k <= 0) return;
+      const ph3 = [cr() * TAU, cr() * TAU, cr() * TAU];
+      ctx.save(); ctx.globalAlpha *= clamp(k * 2);
+      ctx.translate(x, y); const sc = .4 + .6 * easeOut(k); ctx.scale(sc, sc);
+      blob(ctx, 0, 0, r, .18, ph3);
+      const g2 = ctx.createRadialGradient(-r * .2, -r * .2, 0, 0, 0, r * 1.1);
+      g2.addColorStop(0, base); g2.addColorStop(.75, mix(base.length === 7 ? base : '#FFF8E6', edge, .3)); g2.addColorStop(1, edge);
+      ctx.fillStyle = g2; ctx.fill();
+      if (c > .2) {
+        ctx.clip();
+        for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc((cr() - .5) * r * 1.4, (cr() - .5) * r * 1.4, r * (.12 + cr() * .2), 0, TAU); ctx.fillStyle = `rgba(214,140,50,${.45 * (c - .2)})`; ctx.fill(); }
+      }
+      ctx.restore();
+    };
+    if (cfg.cheese !== 'none' && cv_ > 0) {
+      if (cfg.cheese === 'burrata') {
+        for (let i = 0; i < 6; i++) { const a = cr() * TAU, r = R * (.4 + cr() * .2); cheeseBlob(cx + Math.cos(a) * r, cy + Math.sin(a) * r, R * .08, '#FFFDF6', '#EEDDB8', cv_ * 1.6 - i / 6 * .6); }
+        cheeseBlob(cx, cy, R * .24, '#FFFFFB', '#EFE4CC', cv_);
+        if (cv_ > .5) { ctx.save(); ctx.globalAlpha *= (cv_ - .5) * 2; ctx.beginPath(); ctx.ellipse(cx + R * .02, cy + R * .02, R * .1, R * .07, .4, 0, TAU); ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.restore(); }
+      } else {
+        const n = cfg.cheese === 'quattro' ? 20 : 14;
+        const pal = cfg.cheese === 'quattro' ? [['#FFF8E6', '#EAD3A6'], ['#F3E3B3', '#D8B66E'], ['#F7F1E2', '#C9CFC0'], ['#F2D79A', '#C99A45']] : [['#FFF8E6', '#EED7AA']];
+        for (let i = 0; i < n; i++) {
+          const a = cr() * TAU, r = Math.sqrt(cr()) * R * .62, col = pal[i % pal.length];
+          cheeseBlob(cx + Math.cos(a) * r, cy + Math.sin(a) * r, R * (.08 + cr() * .06), col[0], col[1], cv_ * 1.7 - i / n * .7);
+        }
+        if (cfg.cheese === 'quattro' && cv_ > .6) {
+          ctx.save(); ctx.globalAlpha *= (cv_ - .6) * 2.5;
+          for (let i = 0; i < 40; i++) { const a = cr() * TAU, r = Math.sqrt(cr()) * R * .6; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, R * .008, 0, TAU); ctx.fillStyle = '#7F9483'; ctx.fill(); }
+          ctx.restore();
+        }
+      }
+    }
+
+    // coberturas
+    const tv = clamp(s.top);
+    if (tv > 0 && cfg.top) {
+      const tr = mulberry(cfg.seed + 11);
+      cfg.top.forEach(([type, n]) => {
+        for (let i = 0; i < n; i++) {
+          const a = tr() * TAU, r = Math.sqrt(tr()) * R * .64, rot = tr() * TAU;
+          const k = clamp(tv * 1.8 - i / n * .8);
+          const sub = mulberry(cfg.seed * 31 + i * 7 + type.length);
+          if (k <= 0) continue;
+          ctx.save(); ctx.globalAlpha *= k;
+          ctx.translate(cx + Math.cos(a) * r, cy + Math.sin(a) * r); ctx.rotate(rot);
+          const sc = 1.5 - .5 * easeOut(k); ctx.scale(sc, sc);
+          TOPPINGS[type](ctx, R, sub, c);
+          ctx.restore();
+        }
+      });
+    }
+
+    // manchas de leopardo
+    if (c > 0) {
+      const lr = mulberry(cfg.seed + 5);
+      for (let i = 0; i < 70; i++) {
+        const a = lr() * TAU, r = R * (.83 + lr() * .17), sz = R * (.006 + lr() * .026), al = lr();
+        ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, sz * c, 0, TAU);
+        ctx.fillStyle = `rgba(52,24,10,${(.45 + al * .5) * c})`; ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  function fitCanvas(cv) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.round(cv.getBoundingClientRect().width * dpr) || 600;
+    if (cv.width !== w) { cv.width = w; cv.height = w; return true; }
+    return false;
+  }
+
+  /* ================= conteúdo ================= */
+  const PIZZAS = [
+    { nome: 'Margherita', preco: 62, tag: 'A clássica', desc: 'San Marzano, fior di latte, manjericão e azeite extravirgem.', cfg: { seed: 11, sauce: 'red', cheese: 'mozz', top: [['basil', 6]] } },
+    { nome: 'Marinara', preco: 48, tag: 'Sem queijo', desc: 'Tomate, alho laminado, orégano siciliano e azeite. A mais antiga de Nápoles.', cfg: { seed: 23, sauce: 'red', cheese: 'none', top: [['garlic', 12], ['oregano', 70]] } },
+    { nome: 'Diavola', preco: 74, tag: 'Picante', desc: 'Salame picante calabrês, fior di latte, pimenta calabresa e mel de engenho.', cfg: { seed: 5, sauce: 'red', cheese: 'mozz', top: [['salame', 10], ['basil', 2]] } },
+    { nome: 'Funghi e Tartufo', preco: 82, tag: 'Bianca', desc: 'Creme de trufa, cogumelo paris e shimeji, parmigiano e tomilho.', cfg: { seed: 31, sauce: 'white', cheese: 'mozz', top: [['mushroom', 11], ['oregano', 30]] } },
+    { nome: 'Burrata e Rúcula', preco: 86, tag: 'Pós-forno', desc: 'Tomatinhos confitados, rúcula e uma burrata inteira aberta na mesa.', cfg: { seed: 44, sauce: 'red', cheese: 'burrata', top: [['tomato', 8], ['arugula', 12]] } },
+    { nome: 'Quattro Formaggi', preco: 78, tag: 'Bianca', desc: 'Fior di latte, gorgonzola dolce, parmigiano 24 meses e provolone defumado.', cfg: { seed: 52, sauce: 'white', cheese: 'quattro', top: [] } },
+    { nome: 'Mortadella e Pistacchio', preco: 84, tag: 'Da casa', desc: 'Mortadella de Bolonha, stracciatella, pesto e pistache torrado.', cfg: { seed: 67, sauce: 'white', cheese: 'mozz', top: [['mortadella', 6], ['pistachio', 46]] } }
+  ];
+  const MARGHERITA = PIZZAS[0].cfg;
+
+  // letreiro
+  const mq = $('#marquee');
+  const words = PIZZAS.map(p => p.nome);
+  const chunk = words.map(w => `<span>${w}</span><span class="dot">✱</span>`).join('');
+  mq.innerHTML = chunk + chunk;
+
+  // cartões do cardápio
+  const track = $('#menuTrack');
+  track.innerHTML = PIZZAS.map((p, i) => `
+    <article class="pizza-card" data-cursor="Girar">
+      <div class="pc-art"><canvas data-i="${i}" role="img" aria-label="Ilustração da pizza ${p.nome}"></canvas></div>
+      <div class="pc-body">
+        <div class="pc-top"><h3>${p.nome}</h3><span class="price">R$ ${p.preco}</span></div>
+        <p>${p.desc}</p>
+        <span class="tag">${p.tag}</span>
+      </div>
+    </article>`).join('') + `
+    <div class="menu-end"><p>Sobremesa? Tem pizza de Nutella com morango, mas só se pedir com jeito.</p><a class="btn btn-cream" href="#reserva" data-cursor="Mesa">Reservar mesa</a></div>`;
+
+  // canvases
+  const hero = $('#heroPizza'), build = $('#buildPizza');
+  const cardCanvases = $$('.pc-art canvas');
+  let buildState = { dough: 1, sauce: 0, cheese: 0, top: 0, char: 0 };
+  function drawAll() {
+    fitCanvas(hero); drawPizza(hero, MARGHERITA);
+    fitCanvas(build); drawPizza(build, MARGHERITA, buildState);
+    cardCanvases.forEach(cv => { fitCanvas(cv); drawPizza(cv, PIZZAS[+cv.dataset.i].cfg); });
+  }
+  drawAll();
+  let rT; addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(drawAll, 150); });
+
+  // formulário
+  const form = $('#reservaForm'), ok = $('#formOk'), dataIn = $('#r-data');
+  const hoje = new Date(); hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());
+  dataIn.min = hoje.toISOString().slice(0, 10);
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const nome = $('#r-nome').value.trim();
+    if (!nome) { $('#r-nome').focus(); ok.hidden = false; ok.textContent = 'Preencha seu nome para enviarmos o pedido.'; return; }
+    if (!dataIn.value) { dataIn.focus(); ok.hidden = false; ok.textContent = 'Escolha a data da reserva.'; return; }
+    const [y, m, d] = dataIn.value.split('-');
+    ok.hidden = false;
+    ok.textContent = `Pedido recebido, ${nome.split(' ')[0]}: mesa para ${$('#r-pessoas').value} em ${d}/${m}/${y} às ${$('#r-hora').value}. Confirmamos por mensagem até as 17h do dia. (Demonstração, nada foi enviado.)`;
+    if (window.gsap) gsap.from(ok, { y: 12, opacity: 0, duration: .5, ease: 'power3.out' });
+  });
+
+  /* ================= animações ================= */
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let marqueeX = 0, mqBoost = 0, mqDir = 1;
+  const marqueeTick = () => {
+    const half = mq.scrollWidth / 2;
+    mqBoost *= .93;
+    marqueeX -= (0.6 + mqBoost) * mqDir;
+    if (half) { if (marqueeX <= -half) marqueeX += half; if (marqueeX > 0) marqueeX -= half; }
+    mq.style.transform = `translate3d(${marqueeX}px,0,0)`;
+  };
+
+  // pizza sendo montada (funciona mesmo sem GSAP)
+  const stepEls = $$('.step'), navEls = $$('.steps-nav li');
+  const pin = $('.processo-pin'), glow = $('.glow'), gauge = $('.gauge'), gTime = $('#gTime');
+  let lastStep = 0;
+  function renderBuild(p) {
+    const oven = clamp((p - .72) / .22);
+    buildState = {
+      dough: clamp(.35 + p / .15),
+      sauce: clamp((p - .2) / .16),
+      cheese: clamp((p - .45) / .13),
+      top: clamp((p - .57) / .1),
+      char: easeOut(oven)
+    };
+    drawPizza(build, MARGHERITA, buildState);
+    const step = p < .22 ? 0 : p < .45 ? 1 : p < .7 ? 2 : 3;
+    if (step !== lastStep) {
+      stepEls.forEach((el, i) => el.classList.toggle('is-active', i === step));
+      navEls.forEach((el, i) => el.classList.toggle('is-active', i === step));
+      lastStep = step;
+    }
+    const dark = clamp((p - .66) / .1);
+    pin.style.setProperty('--pbg', mix('#FFF9EF', '#23120B', dark));
+    pin.style.setProperty('--pfg', mix('#23120B', '#FFF9EF', dark));
+    glow.style.opacity = oven;
+    gauge.style.opacity = clamp(dark * 2);
+    const secs = Math.round(oven * 90);
+    gTime.textContent = `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
+    build.style.transform = `rotate(${p * 160}deg) scale(${1 + .04 * Math.sin(oven * Math.PI)})`;
+  }
+  renderBuild(0);
+
+  if (!window.gsap || !window.ScrollTrigger) {
+    // sem bibliotecas: mostra a pizza pronta e deixa o resto estático
+    renderBuild(1);
+    return;
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+  const hasSplit = !!window.SplitText;
+  if (hasSplit) gsap.registerPlugin(SplitText);
+
+  // rolagem suave
+  let lenis = null;
+  if (!reduce && window.Lenis) {
+    lenis = new Lenis({ lerp: .085, wheelMultiplier: 1 });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(t => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+    const id = a.getAttribute('href'); const el = id.length > 1 && document.querySelector(id);
+    if (!el) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo(el, { duration: 1.6 }) : el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+  }));
+
+  // barra de progresso
+  gsap.to('.progress', { scaleX: 1, ease: 'none', scrollTrigger: { start: 0, end: 'max', scrub: .3 } });
+
+  // letreiro reage à velocidade
+  if (!reduce) {
+    gsap.ticker.add(marqueeTick);
+    ScrollTrigger.create({ onUpdate: s => { mqDir = s.direction; mqBoost = Math.min(8, Math.abs(s.getVelocity()) / 220); } });
+  }
+
+  // processo fixado
+  ScrollTrigger.create({
+    trigger: '.processo', start: 'top top', end: '+=320%', pin: '.processo-pin', anticipatePin: 1,
+    onUpdate: s => renderBuild(s.progress)
+  });
+
+  // cardápio horizontal no desktop
+  const mm = gsap.matchMedia();
+  mm.add('(min-width: 900px)', () => {
+    const dist = () => Math.max(0, track.scrollWidth - innerWidth);
+    gsap.to(track, {
+      x: () => -dist(), ease: 'none',
+      scrollTrigger: { trigger: '.menu-pin', start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 1, invalidateOnRefresh: true }
+    });
+    gsap.fromTo(cardCanvases, { rotate: -30 }, {
+      rotate: 120, ease: 'none',
+      scrollTrigger: { trigger: '.menu-pin', start: 'top top', end: () => '+=' + dist(), scrub: 1.2 }
+    });
+  });
+
+  if (reduce) { ScrollTrigger.refresh(); return; }
+
+  /* ---- a partir daqui, só animações decorativas ---- */
+
+  // pizza do topo gira com a rolagem
+  gsap.to('#heroPizza', { rotate: 220, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+  gsap.to('.hero-art', { yPercent: 18, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+  $$('.leaf').forEach(el => {
+    gsap.to(el, { y: () => -innerHeight * .35 * +el.dataset.speed, rotate: '+=' + (60 * +el.dataset.speed), ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+  });
+
+  // cartões entram em leque no mobile
+  mm.add('(max-width: 899px)', () => {
+    $$('.pizza-card, .menu-end').forEach(el => gsap.from(el, { y: 60, opacity: 0, duration: .9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%' } }));
+  });
+
+  // revelações genéricas
+  $$('.reveal').forEach(el => gsap.from(el, { y: 50, opacity: 0, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 86%' } }));
+
+  // contadores
+  $$('[data-count]').forEach(el => {
+    const end = +el.dataset.count, o = { v: 0 };
+    gsap.to(o, { v: end, duration: 1.8, ease: 'power2.out', scrollTrigger: { trigger: el, start: 'top 85%' }, onUpdate: () => { el.textContent = Math.round(o.v); } });
+  });
+
+  // rodapé
+  gsap.from('.footer-word', { yPercent: 40, opacity: 0, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: '.footer', start: 'top 85%' } });
+
+  // cursor
+  if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    const cur = $('.cursor');
+    const xTo = gsap.quickTo(cur, 'x', { duration: .35, ease: 'power3' }), yTo = gsap.quickTo(cur, 'y', { duration: .35, ease: 'power3' });
+    addEventListener('pointermove', e => { xTo(e.clientX); yTo(e.clientY); });
+    $$('[data-cursor]').forEach(el => {
+      el.addEventListener('pointerenter', () => { cur.textContent = el.dataset.cursor; cur.classList.add('is-big'); });
+      el.addEventListener('pointerleave', () => { cur.classList.remove('is-big'); });
+    });
+  }
+
+  // textos que dependem da fonte carregada
+  const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve();
+  fontsReady.then(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
+    if (hasSplit) {
+      const split = SplitText.create('#heroTitle', { type: 'lines,chars', mask: 'lines', linesClass: 'line-mask' });
+      tl.from(split.chars, { yPercent: 115, rotate: 6, duration: 1.1, stagger: .022 }, .1);
+    }
+    tl.from('.hero .eyebrow, .hero-lede, .cta-row, .hero-meta', { y: 26, opacity: 0, stagger: .08, duration: .9, ease: 'power3.out' }, .35)
+      .from('.hero-art', { scale: .55, rotate: -140, opacity: 0, duration: 1.8 }, 0)
+      .from('.badge', { scale: 0, duration: 1, ease: 'back.out(2)' }, .7)
+      .from('.nav-inner', { y: -80, opacity: 0, duration: 1 }, .2);
+
+    if (hasSplit) {
+      $$('.section-title').forEach(el => {
+        const s = SplitText.create(el, { type: 'lines', mask: 'lines' });
+        gsap.from(s.lines, { yPercent: 105, duration: 1.1, ease: 'expo.out', stagger: .1, scrollTrigger: { trigger: el, start: 'top 85%' } });
+      });
+      const m = SplitText.create('#manifesto', { type: 'words' });
+      gsap.fromTo(m.words, { opacity: .12 }, { opacity: 1, ease: 'none', stagger: .1, scrollTrigger: { trigger: '.manifesto', start: 'top 70%', end: 'bottom 75%', scrub: true } });
+    }
+    ScrollTrigger.refresh();
+  });
+})();
+</script>
+
+</body>
+</html>
